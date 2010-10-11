@@ -1,0 +1,53 @@
+;;; -*- Mode: LISP; Package: :cl-user; BASE: 10; Syntax: ANSI-Common-Lisp; -*-
+;;;
+;;;   Time-stamp: <>
+;;;   Touched: Mon Oct 11 15:59:54 2010 +0530 <enometh@meer.net>
+;;;   Bugs-To: enometh@meer.net
+;;;   Status: Experimental.  Do not redistribute
+;;;   Copyright (C) 2010 Madhu.  All Rights Reserved.
+;;;
+(in-package "CL-USER")
+
+(defvar *cl-svg-source-dir*
+  (merge-pathnames "Github/cl-svg/" (translate-logical-pathname "EXTERN:")))
+(defvar *cl-svg-binary-dir* (binary-directory *cl-svg-source-dir*))
+
+(mk:defsystem :cl-svg
+  :source-pathname *cl-svg-source-dir*
+  :binary-pathname *cl-svg-binary-dir*
+  :source-extension "lisp"
+  :components ((:module "src"
+		:components((:file "package")
+			    (:file "format-xml")
+			    (:file "path")
+			    (:file "svg")))))
+
+#+nil
+(mk:oos :cl-svg :load :compile-during-load t)
+
+#+nil
+(mk:defsystem :cl-svg/test
+  :source-pathname *cl-svg-source-dir*
+  :binary-pathname *cl-svg-binary-dir*
+  :source-extension "lisp"
+  :depends-on ((:version #:cl-svg "0.4.5") #:nst #:s-xml)
+  :components ((:module "test"
+                :components ((:file "package")
+                             (:file "xml-util")
+                             (:file "criterion")
+                             (:file "fixture")
+                             (:file "toplevel")
+                             (:file "shapes")
+                             (:file "transforms")
+                             (:file "paths")
+                             (:file "groupings")
+                             (:file "precision")
+                             (:file "run")))))
+
+
+#+nil
+(mk:oos :cl-svg/test :load :compile-during-load t)
+
+#+nil
+(cl-svg/test:run-all-tests)
+
