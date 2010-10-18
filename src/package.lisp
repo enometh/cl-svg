@@ -36,6 +36,7 @@
            #:stream-out
            #:xlink-href
            #:svg-toplevel #:svg-1.1-toplevel #:svg-1.2-toplevel
+	   #:xlink-href2
            #:make-svg-toplevel
            #:with-svg-to-file
            #:add-stylesheet

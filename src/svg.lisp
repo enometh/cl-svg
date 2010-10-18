@@ -150,6 +150,9 @@ contents the new transform is simply appended."))
 (defmethod xlink-href ((e svg-element))
   (format nil "url(#~A)" (element-id e)))
 
+(defmethod xlink-href2 ((e svg-element))
+  (format nil "#~A" (element-id e)))
+
 (defmethod initialize-instance :after ((e svg-element) &key &allow-other-keys)
   (when (eql (element-id e) :generate)
     (setf (element-id e) (gensym (element-name e)))))
