@@ -91,7 +91,7 @@ great colors.  And the random rectangles!  You want this as wallpaper.")
   ;;; Next, instantiate like mad.
   (dotimes (i 400)
     (let ((size (+ 5 (random 95))))
-      (draw scene (:use :xlink-href (xlink-href columns))
+      (draw scene (:use :xlink-href (xlink-href2 columns))
             :x (- (random 750) 25)
             :y (- (random 700) 25)
             :height size :width size
