@@ -28,10 +28,32 @@
 
 (in-package :cl-svg)
 
+(defvar *use-previous-path-instruction-hack* t)
+
+(defvar *previous-path-instruction* ""
+  "Keeps track of the previously called path instruction - SVG will assume
+a repetition of the this on its own if it keeps seeing points.")
+
+(defvar *insert-instruction-p* t
+  "Works with *PREVIOUS-PATH-INSTRUCTION* to decide if a path command
+needs to be expressed.")
+
+(defmacro with-path-instruction (instruction &body body)
+  `(prog1
+       (let ((*insert-instruction-p*
+              (not (equal *previous-path-instruction* ,instruction))))
+         ,@body)
+     (setf *previous-path-instruction* ,instruction)))
+
 ;;; https://github.com/w3c/svgwg/issues/331 - many browsers do *not*
 ;;; follow the standard, and don't accept 0.0 as a legit 0.
 (defun format-instruction (instruction &rest args)
-  (format nil "~A~{~/cl-svg:pp-xml-value/~^ ~}" instruction args))
+  (if *use-previous-path-instruction-hack*
+       (with-path-instruction instruction
+	 (if *insert-instruction-p*
+	     (format nil "~A~{~/cl-svg:pp-xml-value/~^ ~}" instruction args)
+	     (format nil " ~{~/cl-svg:pp-xml-value/~^ ~}" args)))
+       (format nil "~A~{~/cl-svg:pp-xml-value/~^ ~}" instruction args)))
 
 (defmacro define-path-instruction-pair (name instruction (&rest args))
   (let ((draw-relative (intern (concatenate 'string (string name) "-R"))))
@@ -76,17 +98,18 @@
 (defmacro with-path (path &body cmds)
   (let ((s (gensym "stream"))
         (n (gensym)))
-    `(flet ((assert-string (s)
-              (error-unless-string s)))
-       (with-output-to-string (,s ,path)
-         ;; Do trivial breaking up of the path data - SVG does not have
-         ;; to accept indefinitely long lines of data.
-         (let ((,n 0))
-           (dolist (inst (mapcar #'assert-string (list ,@cmds)) (format ,s "~&"))
-             (format ,s "~@{~A~}" inst)
-             (incf ,n)
-             (when (= (mod ,n 10) 0)
-               (format ,s "~&"))))))))
+    `(let ((*previous-path-instruction* ""))
+       (flet ((assert-string (s)
+                (error-unless-string s)))
+         (with-output-to-string (,s ,path)
+           ;; Do trivial breaking up of the path data - SVG does not have
+           ;; to accept indefinitely long lines of data.
+           (let ((,n 0))
+             (dolist (inst (mapcar #'assert-string (list ,@cmds)) (format ,s "~&"))
+               (format ,s "~@{~A~}" inst)
+               (incf ,n)
+               (when (= (mod ,n 10) 0)
+                 (format ,s "~&")))))))))
 
 (defmacro path (&body cmds)
   (let ((path (gensym "path")))
