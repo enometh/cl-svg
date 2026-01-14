@@ -51,3 +51,17 @@
 #+nil
 (cl-svg/test:run-all-tests)
 
+
+;;; ----------------------------------------------------------------------
+;;;
+;;;
+;;;
+(mk:defsystem :cl-svg-user
+   :source-pathname *cl-svg-source-dir*
+   :binary-pathname *cl-svg-binary-dir*
+   :source-extension "lisp"
+   :depends-on ("cl-svg")
+   :components ((:file "svg-user")))
+
+#+nil
+(mk:oos :cl-svg-user :load :compile-during-load t)
